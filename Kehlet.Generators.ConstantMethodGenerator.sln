@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyzer", "src\Roslyn\Analyzer\Analyzer.csproj", "{579AE0C9-2FA8-4122-AE7F-26566B037E66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeFixes", "src\Roslyn\CodeFixes\CodeFixes.csproj", "{3CCB9EF0-051F-42BB-945D-7516F27DA1A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "src\Roslyn\Common\Common.csproj", "{02340163-098F-4B39-A62E-DB3FE3B170FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "src\Roslyn\Generator\Generator.csproj", "{20B04ED4-1459-4465-8716-28A82DF37601}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "src\Tests\Tests.csproj", "{01D171AF-06D9-415E-A2B8-CC8BDC2A9ADA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Roslyn", "Roslyn", "{C032FF57-3859-4F8B-ADBB-FD62A9B4D485}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StaticContent", "src\StaticContent\StaticContent.csproj", "{AA2634A5-CF9A-4BD4-926D-3609E050027E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "src\Sample\Sample.csproj", "{40887C1B-EC7F-42D7-8FDC-DC726FCBCBED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{579AE0C9-2FA8-4122-AE7F-26566B037E66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{579AE0C9-2FA8-4122-AE7F-26566B037E66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{579AE0C9-2FA8-4122-AE7F-26566B037E66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{579AE0C9-2FA8-4122-AE7F-26566B037E66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CCB9EF0-051F-42BB-945D-7516F27DA1A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CCB9EF0-051F-42BB-945D-7516F27DA1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CCB9EF0-051F-42BB-945D-7516F27DA1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CCB9EF0-051F-42BB-945D-7516F27DA1A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02340163-098F-4B39-A62E-DB3FE3B170FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02340163-098F-4B39-A62E-DB3FE3B170FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02340163-098F-4B39-A62E-DB3FE3B170FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02340163-098F-4B39-A62E-DB3FE3B170FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20B04ED4-1459-4465-8716-28A82DF37601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20B04ED4-1459-4465-8716-28A82DF37601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20B04ED4-1459-4465-8716-28A82DF37601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20B04ED4-1459-4465-8716-28A82DF37601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01D171AF-06D9-415E-A2B8-CC8BDC2A9ADA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01D171AF-06D9-415E-A2B8-CC8BDC2A9ADA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01D171AF-06D9-415E-A2B8-CC8BDC2A9ADA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01D171AF-06D9-415E-A2B8-CC8BDC2A9ADA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA2634A5-CF9A-4BD4-926D-3609E050027E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA2634A5-CF9A-4BD4-926D-3609E050027E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA2634A5-CF9A-4BD4-926D-3609E050027E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA2634A5-CF9A-4BD4-926D-3609E050027E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40887C1B-EC7F-42D7-8FDC-DC726FCBCBED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40887C1B-EC7F-42D7-8FDC-DC726FCBCBED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40887C1B-EC7F-42D7-8FDC-DC726FCBCBED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40887C1B-EC7F-42D7-8FDC-DC726FCBCBED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{579AE0C9-2FA8-4122-AE7F-26566B037E66} = {C032FF57-3859-4F8B-ADBB-FD62A9B4D485}
+		{3CCB9EF0-051F-42BB-945D-7516F27DA1A3} = {C032FF57-3859-4F8B-ADBB-FD62A9B4D485}
+		{02340163-098F-4B39-A62E-DB3FE3B170FF} = {C032FF57-3859-4F8B-ADBB-FD62A9B4D485}
+		{20B04ED4-1459-4465-8716-28A82DF37601} = {C032FF57-3859-4F8B-ADBB-FD62A9B4D485}
+	EndGlobalSection
+EndGlobal
