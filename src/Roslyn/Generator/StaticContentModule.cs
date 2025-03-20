@@ -2,5 +2,5 @@
 
 namespace Generator;
 
-[LoadAdditionalFiles(MemberNameSuffix = "Source")]
+[LoadAdditionalFiles(MemberNameSuffix = "Source", RegexFilter = @"\.cs$")]
 public static partial class StaticContentModule;

@@ -1,10 +1,10 @@
-﻿using System.Security.Cryptography;
+﻿namespace Kehlet.Generators.ConstantMethodGenerator;
 
-namespace Kehlet.Generators.ConstantMethodGenerator;
-
-public static class MyCode
+public static partial class MyCode
 {
-    [ConstantMethod]
+    [ConstantMethod(nameof(Calc))]
+    public static partial string CalcConstant();
+
     public static string Calc()
     {
         var s = "";
@@ -16,7 +16,9 @@ public static class MyCode
         return s;
     }
 
-    [ConstantMethod]
+    [ConstantMethod(nameof(Fib10), 10)]
+    public static partial int FibConstant();
+
     public static int Fib10()
     {
         static int Core(int n)
@@ -30,5 +32,19 @@ public static class MyCode
         }
 
         return Core(10);
+    }
+
+    [ConstantMethod(nameof(FloatingPointCalc))]
+    public static partial float FloatingPointConstant();
+
+    public static float FloatingPointCalc()
+    {
+        var result = 0f;
+        for (int i = 0; i < 10; i++)
+        {
+            result += 0.1f;
+        }
+
+        return result;
     }
 }

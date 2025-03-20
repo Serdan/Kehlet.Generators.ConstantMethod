@@ -1,11 +1,10 @@
-﻿using System.CodeDom.Compiler;
+﻿using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp;
 
 namespace Generator;
 
@@ -14,14 +13,19 @@ public class ConstantMethodGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var provider = context.SyntaxForAttribute(
+        // context.RegisterPostInitializationOutput(ctx => ctx.AddSource<ConstantMethodAttribute>());
+
+        var provider = context.CreateTargetProvider(
             "Kehlet.Generators.ConstantMethodGenerator.ConstantMethodAttribute",
             (node, token) => SyntaxTarget.Method(node, token)
                              && node is MethodDeclarationSyntax m
                              && m.Modifiers.Any(SyntaxKind.StaticKeyword)
-                             && !m.Modifiers.Any(SyntaxKind.PartialKeyword),
+                             && !m.Modifiers.Any(SyntaxKind.PartialKeyword)
+                             && m.ParameterList.Parameters.Count is 0,
             Transform
         );
+
+
         context.RegisterImplementationSourceOutput(provider, GenerateSource);
     }
 
@@ -69,7 +73,7 @@ public class ConstantMethodGenerator : IIncrementalGenerator
             Assembly assembly;
             try
             {
-#pragma warning disable RS1035
+#pragma warning disable RS1035 ㅋㅋㅋㅋ
                 assembly = Assembly.Load(outputStream.ToArray());
 #pragma warning restore RS1035
             }
@@ -85,14 +89,17 @@ public class ConstantMethodGenerator : IIncrementalGenerator
             var resultString = result switch
             {
                 string s => $"\"{s}\"",
-                int n => $"{n}"
+                int n => $"{n}",
+                float f => f.ToString("R", CultureInfo.InvariantCulture) + "f"
             };
+
+            var type = method.ReturnType.FullName;
 
             var resultSource =
                 $$"""
                 internal static class Container_{{method.Name}}
                 {
-                    public static object {{method.Name}}() => {{resultString}};
+                    public const {{type}} {{method.Name}} = {{resultString}};
                 }
                 """;
 
