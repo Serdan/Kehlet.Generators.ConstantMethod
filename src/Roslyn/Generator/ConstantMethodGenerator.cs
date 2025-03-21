@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Reflection;
 using System.Text;
+using Kehlet.Generators.ConstantMethod;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,57 +9,112 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Generator;
 
+using static SyntaxTarget;
+using static StaticContentModule;
+using BF = BindingFlags;
+using static TargetFilterOptions;
+using static SymbolDisplayMiscellaneousOptions;
+
 [Generator(LanguageNames.CSharp)]
-public class ConstantMethodGenerator : IIncrementalGenerator
+public partial class ConstantMethodGenerator : IIncrementalGenerator
 {
+    private static readonly string AttributeFullName = typeof(ConstantMethodAttribute).FullName!;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // context.RegisterPostInitializationOutput(ctx => ctx.AddSource<ConstantMethodAttribute>());
+        context.RegisterPostInitializationOutput(ctx =>
+        {
+            ctx.AddSource<ConstantMethodAttribute>(ConstantMethodAttributeSource);
+        });
 
-        var provider = context.CreateTargetProvider(
-            "Kehlet.Generators.ConstantMethodGenerator.ConstantMethodAttribute",
-            (node, token) => SyntaxTarget.Method(node, token)
-                             && node is MethodDeclarationSyntax m
-                             && m.Modifiers.Any(SyntaxKind.StaticKeyword)
-                             && !m.Modifiers.Any(SyntaxKind.PartialKeyword)
-                             && m.ParameterList.Parameters.Count is 0,
-            Transform
-        );
-
+        var provider = context.CreateTargetProvider(AttributeFullName, Static | Partial, Method, Transform).Choose();
 
         context.RegisterImplementationSourceOutput(provider, GenerateSource);
     }
 
-    private static string Transform(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+    private static Option<TargetMethodModel> Transform(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
+        object ConvertArray(TypedConstant constant)
+        {
+            // oh god. im in too deep. can't quit now.
+            var elementTypeSymbol = ((IArrayTypeSymbol)constant.Type!).ElementType;
+            var assemblyName = elementTypeSymbol.ContainingAssembly.Identity.Name;
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().First(x => x.GetName().Name == assemblyName);
+            var typeName = elementTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.RemoveMiscellaneousOptions(UseSpecialTypes)
+                                                                                .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
+            var elementType = assembly.GetType(typeName);
+
+            var values = constant.Values.Select(TypedConstantToValue).ToArray();
+
+            var array = Array.CreateInstance(elementType, constant.Values.Length);
+            for (int i = 0; i < array.Length; i++)
+            {
+                array.SetValue(Convert.ChangeType(values[i], elementType), i);
+            }
+
+            return array;
+        }
+
+        object? TypedConstantToValue(TypedConstant constant)
+        {
+            return constant switch
+            {
+                { Kind: TypedConstantKind.Array } => ConvertArray(constant),
+                _                                 => constant.Value
+            };
+        }
+
         var methodSyntax = (MethodDeclarationSyntax)context.TargetNode;
-        return methodSyntax.WithAttributeLists([]).ToFullString();
+
+        var module = SyntaxHelper.GetTargetWithContext(methodSyntax);
+        if (module.IsNone)
+        {
+            return Option.None;
+        }
+
+        var args = context.Attributes.First().ConstructorArguments;
+
+        var targetMethodName = (string)args[0].Value!;
+        var targetMethodArgs = args[1].Values.Select(TypedConstantToValue).ToArray();
+
+        var type = (TypeDeclarationSyntax)methodSyntax.Parent!;
+
+        var implementationNode = type.Members.First(node => node is MethodDeclarationSyntax method && method.Identifier.ValueText == targetMethodName);
+        var implementation = implementationNode.ToString();
+
+        return Some(new TargetMethodModel(module.UnsafeValue, implementation, targetMethodArgs));
     }
 
-    private static void Write(SourceProductionContext context, string message) =>
-        context.ReportDiagnostic(Diagnostic.Create("TEST", "Usage", message, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1));
-
-    private static void GenerateSource(SourceProductionContext context, string methodSource)
+    private static void GenerateSource(SourceProductionContext context, TargetMethodModel model)
     {
-        Write(context, methodSource.ReplaceLineEndings("\\"));
-
         try
         {
+            // We create a new assembly with a single static class containing a copy-pasta of the user implementation.
+            // We then compile and dynamically invoke the method.
+            // I don't know if there's a simpler way to do this as I didn't stop to think before doing it.
             var source =
                 $$"""
                 using System;
+                using System.Collections.Generic;
+                using System.Linq;
 
                 public static class Container
                 {
-                    {{methodSource}}
+                    {{model.MethodSource}}
                 }
                 """;
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source);
             var compilation = CSharpCompilation.Create(
                 "ContainerAssembly",
-                [syntaxTree],
-                [MetadataReference.CreateFromFile(typeof(Object).Assembly.Location)],
+                [CSharpSyntaxTree.ParseText(source)],
+                [
+#pragma warning disable RS1035 // ㅋㅋㅋ
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("netstandard")).Location),
+                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("System.Runtime")).Location),
+                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("System.Linq")).Location)
+#pragma warning restore RS1035
+                ],
                 new(outputKind: OutputKind.DynamicallyLinkedLibrary)
             );
 
@@ -70,44 +126,36 @@ public class ConstantMethodGenerator : IIncrementalGenerator
                 throw new("Diagnostic: " + emitResult.Diagnostics[0].GetMessage());
             }
 
-            Assembly assembly;
-            try
-            {
-#pragma warning disable RS1035 ㅋㅋㅋㅋ
-                assembly = Assembly.Load(outputStream.ToArray());
+#pragma warning disable RS1035 // ㅋㅋㅋ
+            var assembly = Assembly.Load(outputStream.ToArray());
 #pragma warning restore RS1035
-            }
-            catch (Exception)
-            {
-                Write(context, "Load failed");
-                throw;
-            }
 
             var container = assembly.GetTypes().First();
-            var method = container.GetMethods(BindingFlags.Public | BindingFlags.Static)[0];
-            var result = method.Invoke(null, []);
+            var method = container.GetMethods(BF.Public | BF.Static)[0];
+            var result = method.Invoke(null, model.Args);
             var resultString = result switch
             {
                 string s => $"\"{s}\"",
-                int n => $"{n}",
-                float f => f.ToString("R", CultureInfo.InvariantCulture) + "f"
+                IFormattable formattable => formattable.ToString("R", CultureInfo.InvariantCulture) +
+                                            formattable switch
+                                            {
+                                                uint    => "u",
+                                                long    => "l",
+                                                ulong   => "ul",
+                                                float   => "f",
+                                                double  => "d",
+                                                decimal => "m",
+                                                _       => ""
+                                            }
             };
 
-            var type = method.ReturnType.FullName;
-
-            var resultSource =
-                $$"""
-                internal static class Container_{{method.Name}}
-                {
-                    public const {{type}} {{method.Name}} = {{resultString}};
-                }
-                """;
+            var resultSource = new Emitter(resultString).Visit(model.Module).UnsafeValue.ToString();
 
             context.AddSource($"{method.Name}.g", SourceText.From(resultSource, Encoding.UTF8));
         }
         catch (Exception e)
         {
-            context.ReportDiagnostic(Diagnostic.Create("TEST", "Usage", $"{e.Message}", DiagnosticSeverity.Error, DiagnosticSeverity.Error, true, 0));
+            context.ReportDiagnostic(Diagnostic.Create("CONSTANT0001", "Usage", $"{e.Message}", DiagnosticSeverity.Error, DiagnosticSeverity.Error, true, 0));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Kehlet.Generators.Attributes;
+﻿using Kehlet.Generators.LoadAdditionalFiles;
 
 namespace Generator;
 

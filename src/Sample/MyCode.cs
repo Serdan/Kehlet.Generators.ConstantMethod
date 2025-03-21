@@ -1,50 +1,78 @@
-﻿namespace Kehlet.Generators.ConstantMethodGenerator;
+﻿namespace Kehlet.Generators.ConstantMethod.Sample;
 
 public static partial class MyCode
 {
-    [ConstantMethod(nameof(Calc))]
-    public static partial string CalcConstant();
-
-    public static string Calc()
+    public static string RepeatedCharacter(char character, int repetitions)
     {
         var s = "";
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < repetitions; i++)
         {
-            s += "H";
+            s += character;
         }
-
+    
         return s;
     }
-
-    [ConstantMethod(nameof(Fib10), 10)]
-    public static partial int FibConstant();
-
-    public static int Fib10()
+    
+    [ConstantMethod(nameof(RepeatedCharacter), 'H', 10)]
+    public static partial string RepeatedHs();
+    
+    public static int Fib(int n)
     {
-        static int Core(int n)
+        return n switch
         {
-            return n switch
-            {
-                0 => 1,
-                1 => 1,
-                _ => Core(n - 1) + Core(n - 2)
-            };
+            0 => 1,
+            1 => 1,
+            _ => Fib(n - 1) + Fib(n - 2)
+        };
+    }
+    
+    [ConstantMethod(nameof(Fib), 11)]
+    public static partial int FibConstant();
+    
+    public static int Sum(int start, int count) => Enumerable.Range(start, count).Sum();
+    
+    [ConstantMethod(nameof(Sum), 1, 100)]
+    public static partial int Sum100();
+
+    public static int SumArray(int[] arr)
+    {
+        var sum = 0;
+        for (int i = 0; i < arr.Length; i++)
+        {
+            sum += arr[i];
         }
 
-        return Core(10);
+        return sum;
     }
 
-    [ConstantMethod(nameof(FloatingPointCalc))]
-    public static partial float FloatingPointConstant();
+    [ConstantMethod(nameof(SumArray), new[] { 42, 69, 420 })]
+    public static partial int SumArrayConstant();
 
     public static float FloatingPointCalc()
     {
-        var result = 0f;
+        var sum = 0f;
         for (int i = 0; i < 10; i++)
         {
-            result += 0.1f;
+            sum += 0.1f;
         }
-
-        return result;
+    
+        return sum;
     }
+    
+    [ConstantMethod(nameof(FloatingPointCalc))]
+    public static partial float FloatingPointConstant();
+    
+    public static decimal DecimalCalc()
+    {
+        var sum = 0m;
+        for (int i = 0; i < 10; i++)
+        {
+            sum += 0.1m;
+        }
+    
+        return sum;
+    }
+    
+    [ConstantMethod(nameof(DecimalCalc))]
+    public static partial decimal DecimalConstant();
 }
